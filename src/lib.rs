@@ -1,7 +1,7 @@
 use wgpu::{util::DeviceExt};
-use ndarray::{prelude::*, Shape};
-use ndarray::{array, Array};
+use ndarray::{prelude::*, Shape, Array, NdIndex};
 use num_traits;
+use std::ops::{Index, IndexMut};
 
 pub struct Tensor<T, D> {
     pub data: Array<T, D>,
@@ -43,15 +43,40 @@ impl<T, D> Tensor<T, D> where
     pub fn concatenate(&mut self, other: &mut Tensor<T, D>, dim: usize) {
         self.data = ndarray::concatenate(ndarray::Axis(dim), &[self.data.view(), other.data.view()]).unwrap();        
     }
+
+    // Slicing:
+    // Macros from: https://docs.rs/ndarray/latest/ndarray/macro.s.html
+    
+}
+
+// Indexing
+impl<Idx: NdIndex<D>, T, D> Index<Idx> for Tensor<T, D> where
+    T: bytemuck::Pod + bytemuck::Zeroable,
+    D: ndarray::Dimension,
+{
+    type Output = <Array<T, D> as Index<Idx>>::Output;
+    fn index(&self, i: Idx) -> &Self::Output {
+        &self.data[i]
+    }
+}
+
+impl<Idx: NdIndex<D>, T, D> IndexMut<Idx> for Tensor<T, D> where
+    T: bytemuck::Pod + bytemuck::Zeroable,
+    D: ndarray::Dimension,
+{
+
+    fn index_mut (&mut self, i: Idx) -> &mut Self::Output {
+        &mut self.data[i]
+    }
 }
 
 // GPU methods
 impl<T, D> Tensor<T, D> where 
-    T: bytemuck::Pod + bytemuck::Zeroable ,
+    T: bytemuck::Pod + bytemuck::Zeroable,
     D: ndarray::Dimension,
 {
     pub fn to_array(&self) -> Vec<T> {
-        self.data.as_slice().unwrap().to_vec()
+        Array::from_iter(self.data.iter().cloned()).to_vec()
     }
 
     pub fn create_buffer(&mut self, device: &wgpu::Device, usage: wgpu::BufferUsages, label: Option<&str>) {
@@ -70,34 +95,4 @@ impl<T, D> Tensor<T, D> where
 }
 
 #[cfg(test)]
-mod tests {
-    use crate::Tensor;
-    use ndarray::prelude::*;
-
-    #[test]
-    fn creation() {
-        let shape = (2, 3).f();
-        let a = Tensor::<f32, _>::zeros(shape);
-        assert_eq!(a.shape(), &[2, 3]);
-        assert_eq!(a.data, array![[0., 0., 0.], [0., 0., 0.]]);
-    }
-
-    #[test]
-    fn concatenation() {
-        let shape = (2, 3).f();
-        let mut a = Tensor::<f32, _>::zeros(shape);
-        let mut b = Tensor::<f32, _>::zeros(shape);
-        a.concatenate(&mut b, 0);
-        assert_eq!(a.shape(), &[4, 3]);
-        assert_eq!(a.data, array![[0., 0., 0.], [0., 0., 0.], [0., 0., 0.], [0., 0., 0.]]);
-
-        let mut a = Tensor::<f32, _>::zeros(shape);
-        let mut b = Tensor::<f32, _>::zeros(shape);
-        a.concatenate(&mut b, 1);
-        assert_eq!(a.shape(), &[2, 6]);
-        assert_eq!(a.data, array![[0., 0., 0., 0., 0., 0.], [0., 0., 0., 0., 0., 0.]]);
-    }
-
-    // Testing GPU methods is very complicated because I need the framework.
-
-}
+mod tests;
