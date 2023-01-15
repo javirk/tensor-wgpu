@@ -42,11 +42,7 @@ impl<T, D> Tensor<T, D> where
 {
     pub fn concatenate(&mut self, other: &mut Tensor<T, D>, dim: usize) {
         self.data = ndarray::concatenate(ndarray::Axis(dim), &[self.data.view(), other.data.view()]).unwrap();        
-    }
-
-    // Slicing:
-    // Macros from: https://docs.rs/ndarray/latest/ndarray/macro.s.html
-    
+    }    
 }
 
 // Indexing
