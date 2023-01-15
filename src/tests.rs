@@ -1,4 +1,4 @@
-use crate::Tensor;
+use crate::{Tensor, Tensor2};
 use ndarray::prelude::*;
 
 #[test]
@@ -41,3 +41,18 @@ fn slicing() {
 }
 
 // Testing GPU methods is very complicated because I need the framework.
+
+#[test]
+fn alias_tensor2() {
+    let shape = (2, 3).f();
+    let a = Tensor::<f32, _>::zeros(shape);
+    let b = Tensor2::<f32>::zeros(shape);
+    assert_eq!(a.shape(), b.shape());
+}
+
+#[test]
+fn struct_creation() {
+    struct TestStruct(Tensor2<u32>);
+    let val = TestStruct(Tensor2::<u32>::zeros((2, 3).f()));
+    assert_eq!(val.0.shape(), &[2, 3]);
+}

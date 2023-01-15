@@ -9,6 +9,11 @@ pub struct Tensor<T, D> {
     pub buf_size: Option<wgpu::BufferSize>,
 }
 
+// Type aliases
+pub type Tensor1<T> = Tensor<T, Ix1>;
+pub type Tensor2<T> = Tensor<T, Ix2>;
+pub type Tensor3<T> = Tensor<T, Ix3>;
+
 // Initializers
 impl<T, D> Tensor<T, D> where
     T: bytemuck::Pod + bytemuck::Zeroable + num_traits::identities::Zero,
