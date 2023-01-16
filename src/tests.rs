@@ -56,3 +56,13 @@ fn struct_creation() {
     let val = TestStruct(Tensor2::<u32>::zeros((2, 3).f()));
     assert_eq!(val.0.shape(), &[2, 3]);
 }
+
+#[test]
+fn clone() {
+    let shape = (2, 3).f();
+    let a = Tensor::<f32, _>::zeros(shape);
+    let b = a.clone();
+    assert_eq!(a.shape(), b.shape());
+    assert_eq!(a.data, b.data);
+    assert_eq!(a.buf_size, b.buf_size);
+}

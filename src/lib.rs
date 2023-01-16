@@ -1,5 +1,5 @@
 use wgpu::{util::DeviceExt};
-use ndarray::{prelude::*, Shape, Array, NdIndex};
+use ndarray::{prelude::*, Shape, Array, NdIndex, OwnedRepr, RawDataClone};
 use num_traits;
 use std::ops::{Index, IndexMut};
 use core::fmt;
@@ -76,6 +76,16 @@ impl<Idx: NdIndex<D>, T, D> IndexMut<Idx> for Tensor<T, D> where
 
     fn index_mut (&mut self, i: Idx) -> &mut Self::Output {
         &mut self.data[i]
+    }
+}
+
+impl<T, D> Clone for Tensor<T, D> where OwnedRepr<T>: RawDataClone, D: Clone {
+    fn clone(&self) -> Tensor<T, D> {
+        Tensor {
+            data: self.data.clone(),
+            buffer: None,
+            buf_size: self.buf_size,
+        }
     }
 }
 
