@@ -2,32 +2,35 @@ use wgpu::{util::DeviceExt};
 use ndarray::{prelude::*, Shape, Array, NdIndex};
 use num_traits;
 use std::ops::{Index, IndexMut};
+use core::fmt;
 
 pub struct Tensor<T, D> {
     pub data: Array<T, D>,
     pub buffer: Option<wgpu::Buffer>,
-    pub buf_size: Option<wgpu::BufferSize>,
+    pub buf_size: usize,
 }
 
 // Type aliases
 pub type Tensor1<T> = Tensor<T, Ix1>;
 pub type Tensor2<T> = Tensor<T, Ix2>;
 pub type Tensor3<T> = Tensor<T, Ix3>;
+pub type Tensor4<T> = Tensor<T, Ix4>;
 
 // Initializers
 impl<T, D> Tensor<T, D> where
     T: bytemuck::Pod + bytemuck::Zeroable + num_traits::identities::Zero,
     D: ndarray::Dimension,
-{  // Not sure about this
+{
     pub fn zeros(size: Shape<D>) -> Self {
         let data = Array::<T, _>::zeros(size);
+        let buf_size = data.len() * std::mem::size_of::<T>();
         Tensor { 
             data: data, 
             buffer: None, 
-            buf_size: None 
+            buf_size: buf_size
         }
     }
-    // From data
+    // TODO: Initialize from data
 }
 
 // Other methods
@@ -46,8 +49,13 @@ impl<T, D> Tensor<T, D> where
     D: ndarray::RemoveAxis
 {
     pub fn concatenate(&mut self, other: &mut Tensor<T, D>, dim: usize) {
-        self.data = ndarray::concatenate(ndarray::Axis(dim), &[self.data.view(), other.data.view()]).unwrap();        
-    }    
+        self.data = ndarray::concatenate(ndarray::Axis(dim), &[self.data.view(), other.data.view()]).unwrap();
+        self.update_buffer_size();
+    }
+
+    fn update_buffer_size(&mut self) {
+        self.buf_size = self.data.len() * std::mem::size_of::<T>();
+    }
 }
 
 // Indexing
@@ -81,17 +89,28 @@ impl<T, D> Tensor<T, D> where
     }
 
     pub fn create_buffer(&mut self, device: &wgpu::Device, usage: wgpu::BufferUsages, label: Option<&str>) {
-        let buf_size = self.data.len() * std::mem::size_of::<T>();
         self.buffer = Some(device.create_buffer_init(&wgpu::util::BufferInitDescriptor {
             label: label,
             contents: bytemuck::cast_slice(&self.to_array()),
             usage: usage,
         }));
-        self.buf_size = wgpu::BufferSize::new(buf_size as _,);
     }
 
     pub fn binding_resource(&self) -> wgpu::BindingResource {
         self.buffer.as_ref().expect("").as_entire_binding()
+    }
+}
+
+impl<T, D> fmt::Display for Tensor<T, D> where T: fmt::Display, D: ndarray::Dimension {
+    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+        let mut comma_separated = String::new();
+        comma_separated.push_str("[");
+        for num in &self.data {
+            comma_separated.push_str(&num.to_string());
+            comma_separated.push_str(", ");
+        }
+        comma_separated.push_str("]");
+        write!(f, "{}", comma_separated)
     }
 }
 
