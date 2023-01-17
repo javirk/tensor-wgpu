@@ -31,6 +31,21 @@ impl<T, D> Tensor<T, D> where
         }
     }
     // TODO: Initialize from data
+
+}
+impl<T, D> Tensor<T, D> where
+    T: bytemuck::Pod + bytemuck::Zeroable,
+    D: ndarray::Dimension,
+{
+    pub fn from_data(data: Vec<T>, size: Shape<D>) -> Self {
+        let data = Array::<T, _>::from_shape_vec(size, data).unwrap();
+        let buf_size = data.len() * std::mem::size_of::<T>();
+        Tensor { 
+            data: data, 
+            buffer: None, 
+            buf_size: buf_size
+        }
+    }
 }
 
 // Other methods
@@ -48,9 +63,21 @@ impl<T, D> Tensor<T, D> where
     T: bytemuck::Pod + bytemuck::Zeroable,
     D: ndarray::RemoveAxis
 {
-    pub fn concatenate(&mut self, other: &mut Tensor<T, D>, dim: usize) {
+    pub fn concatenate(&mut self, other: &Tensor<T, D>, dim: usize) {
         self.data = ndarray::concatenate(ndarray::Axis(dim), &[self.data.view(), other.data.view()]).unwrap();
         self.update_buffer_size();
+    }
+
+    pub fn enlarge_dimension(&mut self, dim: usize, default_value: T) {
+        let mut arr_shape = self.data.raw_dim();
+        arr_shape[dim] = 1;
+        let arr_concat = Array::<T,_>::from_elem(arr_shape, default_value);
+        let tensor = Tensor {
+            data: arr_concat,
+            buffer: None,
+            buf_size: 0,
+        };
+        self.concatenate(&tensor, dim);
     }
 
     fn update_buffer_size(&mut self) {

@@ -66,3 +66,12 @@ fn clone() {
     assert_eq!(a.data, b.data);
     assert_eq!(a.buf_size, b.buf_size);
 }
+
+#[test]
+fn enlarge_dimension() {
+    let shape = (2, 3).f();
+    let mut a = Tensor::<f32, _>::zeros(shape);
+    a.enlarge_dimension(0, 1.);
+    assert_eq!(a.shape(), &[3, 3]);
+    assert_eq!(a.data, array![[0., 0., 0.], [0., 0., 0.], [1., 1., 1.]]);
+}
