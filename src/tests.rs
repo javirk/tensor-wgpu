@@ -75,3 +75,19 @@ fn enlarge_dimension() {
     assert_eq!(a.shape(), &[3, 3]);
     assert_eq!(a.data, array![[0., 0., 0.], [0., 0., 0.], [1., 1., 1.]]);
 }
+
+#[test]
+fn copy_dimension() {
+    let shape = (2, 3).f();
+    let mut a = Tensor::<f32, _>::zeros(shape);
+    a[[0, 0]] = 1.;
+    a.copy_dimension(0);
+    assert_eq!(a.shape(), &[3, 3]);
+    assert_eq!(a.data, array![[1., 0., 0.], [0., 0., 0.], [1., 0., 0.]]);
+
+    let mut a = Tensor::<f32, _>::zeros(shape);
+    a[[0, 0]] = 1.;
+    a.copy_dimension(1);
+    assert_eq!(a.shape(), &[2, 4]);
+    assert_eq!(a.data, array![[1., 0., 0., 1.], [0., 0., 0., 0.]]);
+}

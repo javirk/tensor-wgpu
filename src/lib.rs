@@ -1,5 +1,5 @@
 use wgpu::{util::DeviceExt};
-use ndarray::{prelude::*, Shape, Array, NdIndex, OwnedRepr, RawDataClone};
+use ndarray::{prelude::*, Shape, Array, NdIndex, OwnedRepr, RawDataClone, SliceArg};
 use num_traits;
 use std::ops::{Index, IndexMut};
 use core::fmt;
@@ -78,6 +78,12 @@ impl<T, D> Tensor<T, D> where
             buf_size: 0,
         };
         self.concatenate(&tensor, dim);
+    }
+
+    pub fn copy_dimension(&mut self, dim: usize) {
+        let mut tensor_copy = self.clone();
+        tensor_copy.data.slice_axis_inplace(ndarray::Axis(dim), ndarray::Slice::from(0..1));
+        self.concatenate(&tensor_copy, dim);
     }
 
     fn update_buffer_size(&mut self) {
