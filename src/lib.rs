@@ -1,5 +1,5 @@
 use wgpu::{util::DeviceExt};
-use ndarray::{prelude::*, Shape, Array, NdIndex, OwnedRepr, RawDataClone, SliceArg};
+use ndarray::{prelude::*, Shape, Array, NdIndex, OwnedRepr, RawDataClone, SliceArg, StrideShape};
 use num_traits;
 use std::ops::{Index, IndexMut};
 use core::fmt;
@@ -37,7 +37,8 @@ impl<T, D> Tensor<T, D> where
     T: bytemuck::Pod + bytemuck::Zeroable,
     D: ndarray::Dimension,
 {
-    pub fn from_data(data: Vec<T>, size: Shape<D>) -> Self {
+    //pub fn from_data(data: Vec<T>, size: Shape<D>) -> Self {
+    pub fn from_data(data: Vec<T>, size: StrideShape<D>) -> Self {   
         let data = Array::<T, _>::from_shape_vec(size, data).unwrap();
         let buf_size = data.len() * std::mem::size_of::<T>();
         Tensor { 
@@ -71,7 +72,7 @@ impl<T, D> Tensor<T, D> where
     pub fn concatenate_vector(&mut self, vec: &Vec<T>, dim: usize) {
         let mut arr_shape = self.data.raw_dim();
         arr_shape[dim] = 1;
-        let tensor = Tensor::<T, _>::from_data(vec.clone(), arr_shape.f());
+        let tensor = Tensor::<T, _>::from_data(vec.clone(), StrideShape::from(arr_shape));
         self.concatenate(&tensor, dim);
     }
 

@@ -1,12 +1,20 @@
 use crate::{Tensor, Tensor2};
-use ndarray::prelude::*;
+use ndarray::{prelude::*, StrideShape};
 
 #[test]
-fn creation() {
+fn zeros_creation() {
     let shape = (2, 3).f();
     let a = Tensor::<f32, _>::zeros(shape);
     assert_eq!(a.shape(), &[2, 3]);
     assert_eq!(a.data, array![[0., 0., 0.], [0., 0., 0.]]);
+}
+
+#[test]
+fn from_data_creation() {
+    let shape = StrideShape::from((2, 3));
+    let a = Tensor::<f32, _>::from_data(vec![1., 2., 3., 4., 5., 6.], shape);
+    assert_eq!(a.shape(), &[2, 3]);
+    assert_eq!(a.data, array![[1., 2., 3.], [4., 5., 6.]]);
 }
 
 #[test]
@@ -27,9 +35,14 @@ fn concatenation() {
 
 #[test]
 fn to_array() {
-    let shape = (2, 3).f();
-    let a = Tensor::<f32, _>::zeros(shape);
+    let shape = StrideShape::from((2, 3));
+    let a = Tensor::<f32, _>::zeros((2,3).f());
     assert_eq!(a.to_array(), vec![0., 0., 0., 0., 0., 0.]);
+    let a = Tensor::<f32, _>::from_data(vec![1., 2., 3., 4., 5., 6.], shape);
+    assert_eq!(a.to_array(), vec![1., 2., 3., 4., 5., 6.]);
+    let shape = StrideShape::from((2, 3, 4));
+    let a = Tensor::<f32, _>::from_data(vec![1., 2., 3., 4., 5., 6., 7., 8., 9., 10., 11., 12., 13., 14., 15., 16., 17., 18., 19., 20., 21., 22., 23., 24.], shape);
+    assert_eq!(a.to_array(), vec![1., 2., 3., 4., 5., 6., 7., 8., 9., 10., 11., 12., 13., 14., 15., 16., 17., 18., 19., 20., 21., 22., 23., 24.]);
 }
 
 #[test]
