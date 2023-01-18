@@ -91,3 +91,14 @@ fn copy_dimension() {
     assert_eq!(a.shape(), &[2, 4]);
     assert_eq!(a.data, array![[1., 0., 0., 1.], [0., 0., 0., 0.]]);
 }
+
+#[test]
+fn concatenate_vector() {
+    let shape = (2, 3).f();
+    let mut a = Tensor::<f32, _>::zeros(shape);
+    a[[0, 0]] = 1.;
+    let b = vec![2., 2., 0.];
+    a.concatenate_vector(&b, 0);
+    assert_eq!(a.shape(), &[3, 3]);
+    assert_eq!(a.data, array![[1., 0., 0.], [0., 0., 0.], [2., 2., 0.]]);
+}

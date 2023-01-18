@@ -68,6 +68,13 @@ impl<T, D> Tensor<T, D> where
         self.update_buffer_size();
     }
 
+    pub fn concatenate_vector(&mut self, vec: &Vec<T>, dim: usize) {
+        let mut arr_shape = self.data.raw_dim();
+        arr_shape[dim] = 1;
+        let tensor = Tensor::<T, _>::from_data(vec.clone(), arr_shape.f());
+        self.concatenate(&tensor, dim);
+    }
+
     pub fn enlarge_dimension(&mut self, dim: usize, default_value: T) {
         let mut arr_shape = self.data.raw_dim();
         arr_shape[dim] = 1;
