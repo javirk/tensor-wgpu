@@ -146,6 +146,14 @@ impl<T, D> Tensor<T, D> where
         }));
     }
 
+    pub fn buffer_size(&self) -> usize {
+        self.buf_size
+    }
+
+    pub fn buffer(&self) -> &wgpu::Buffer {
+        self.buffer.as_ref().expect("Buffer not found")
+    }
+
     pub fn binding_resource(&self) -> wgpu::BindingResource {
         self.buffer.as_ref().expect("").as_entire_binding()
     }
