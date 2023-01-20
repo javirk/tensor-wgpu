@@ -91,3 +91,11 @@ fn copy_dimension() {
     assert_eq!(a.shape(), &[2, 4]);
     assert_eq!(a.data, array![[1., 0., 0., 1.], [0., 0., 0., 0.]]);
 }
+
+#[test]
+fn fmt_display() {
+    let shape = (2, 3).f();
+    let mut a = Tensor::<f32, _>::zeros(shape);
+    a[[0, 0]] = 8.5E-14;
+    assert_eq!(format!("{}", a), "Dimensions: [2, 3]\n[[+8.5e-14, +0e0, +0e0],\n [+0e0, +0e0, +0e0]]");
+} 

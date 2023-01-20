@@ -144,16 +144,13 @@ impl<T, D> Tensor<T, D> where
     }
 }
 
-impl<T, D> fmt::Display for Tensor<T, D> where T: fmt::Display, D: ndarray::Dimension {
+impl<T, D> fmt::Display for Tensor<T, D> where 
+    T: fmt::Display + bytemuck::Pod + bytemuck::Zeroable + fmt::LowerExp, 
+    D: ndarray::Dimension 
+{
+
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
-        let mut comma_separated = String::new();
-        comma_separated.push_str("[");
-        for num in &self.data {
-            comma_separated.push_str(&num.to_string());
-            comma_separated.push_str(", ");
-        }
-        comma_separated.push_str("]");
-        write!(f, "{}", comma_separated)
+        format!("Dimensions: {:?}\n{:+e}", self.shape(), self.data).fmt(f)
     }
 }
 
