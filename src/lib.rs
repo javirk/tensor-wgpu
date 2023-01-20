@@ -1,5 +1,5 @@
 use wgpu::{util::DeviceExt};
-use ndarray::{prelude::*, Shape, Array, NdIndex, OwnedRepr, RawDataClone, SliceArg};
+use ndarray::{prelude::*, Shape, Array, NdIndex, OwnedRepr, RawDataClone, SliceArg, StrideShape};
 use num_traits;
 use std::ops::{Index, IndexMut};
 use core::fmt;
@@ -37,7 +37,8 @@ impl<T, D> Tensor<T, D> where
     T: bytemuck::Pod + bytemuck::Zeroable,
     D: ndarray::Dimension,
 {
-    pub fn from_data(data: Vec<T>, size: Shape<D>) -> Self {
+    //pub fn from_data(data: Vec<T>, size: Shape<D>) -> Self {
+    pub fn from_data(data: Vec<T>, size: StrideShape<D>) -> Self {   
         let data = Array::<T, _>::from_shape_vec(size, data).unwrap();
         let buf_size = data.len() * std::mem::size_of::<T>();
         Tensor { 
@@ -66,6 +67,13 @@ impl<T, D> Tensor<T, D> where
     pub fn concatenate(&mut self, other: &Tensor<T, D>, dim: usize) {
         self.data = ndarray::concatenate(ndarray::Axis(dim), &[self.data.view(), other.data.view()]).unwrap();
         self.update_buffer_size();
+    }
+
+    pub fn concatenate_vector(&mut self, vec: &Vec<T>, dim: usize) {
+        let mut arr_shape = self.data.raw_dim();
+        arr_shape[dim] = 1;
+        let tensor = Tensor::<T, _>::from_data(vec.clone(), StrideShape::from(arr_shape));
+        self.concatenate(&tensor, dim);
     }
 
     pub fn enlarge_dimension(&mut self, dim: usize, default_value: T) {
@@ -137,6 +145,14 @@ impl<T, D> Tensor<T, D> where
             contents: bytemuck::cast_slice(&self.to_array()),
             usage: usage,
         }));
+    }
+
+    pub fn buffer_size(&self) -> usize {
+        self.buf_size
+    }
+
+    pub fn buffer(&self) -> &wgpu::Buffer {
+        self.buffer.as_ref().expect("Buffer not found")
     }
 
     pub fn binding_resource(&self) -> wgpu::BindingResource {
