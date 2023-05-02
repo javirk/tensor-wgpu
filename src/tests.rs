@@ -123,3 +123,31 @@ fn concatenate_vector() {
     assert_eq!(a.shape(), &[3, 3]);
     assert_eq!(a.data, array![[1., 0., 0.], [0., 0., 0.], [2., 2., 0.]]);
 }
+
+#[test]
+fn remove_element() {
+    let shape = (2, 3).f();
+    let mut a = Tensor::<f32, _>::zeros(shape);
+    a[[0, 0]] = 1.;
+    a[[1, 0]] = 2.;
+    a[[0, 1]] = 3.;
+    a[[1, 1]] = 4.;
+    let mut b = a.clone();
+    a.remove_element_at(0, 0);
+    assert_eq!(a.shape(), &[1, 3]);
+    assert_eq!(a.data, array![[2., 4., 0.]]);
+
+    let mut c = b.clone();
+    b.remove_element_at(1, 1);
+    assert_eq!(b.shape(), &[2, 2]);
+    assert_eq!(b.data, array![[1., 0.], [2., 0.]]);
+
+    let mut d = c.clone();
+    c.remove_element_at(0, 1);
+    assert_eq!(c.shape(), &[1, 3]);
+    assert_eq!(c.data, array![[1., 3., 0.]]);
+
+    d.remove_element_at(1, 2);
+    assert_eq!(d.shape(), &[2, 2]);
+    assert_eq!(d.data, array![[1., 3.],[2., 4.]]);
+}

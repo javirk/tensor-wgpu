@@ -1,5 +1,5 @@
 use wgpu::{util::DeviceExt};
-use ndarray::{prelude::*, Shape, Array, NdIndex, OwnedRepr, RawDataClone, SliceArg, StrideShape};
+use ndarray::{prelude::*, Shape, Array, NdIndex, OwnedRepr, RawDataClone, StrideShape};
 use num_traits;
 use std::ops::{Index, IndexMut};
 use core::fmt;
@@ -96,6 +96,11 @@ impl<T, D> Tensor<T, D> where
 
     fn update_buffer_size(&mut self) {
         self.buf_size = self.data.len() * std::mem::size_of::<T>();
+    }
+
+    pub fn remove_element_at(&mut self, dim: usize, index: usize) {
+        self.data.remove_index(ndarray::Axis(dim), index);
+        self.update_buffer_size();
     }
 }
 
